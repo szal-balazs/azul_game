@@ -38,7 +38,7 @@ class Wall:
         return tile_type in self.wall[line_no]
 
     def counting_points(self, line_no, column_no):
-        points = 1
+        points = 0
 
         def count_tiles(start, step, is_row):
             point = 0
@@ -49,10 +49,15 @@ class Wall:
                     x += step
                 else:
                     break
+            if point > 0:
+                point += 1
             return point
 
         points += count_tiles(line_no, 1, True) + count_tiles(line_no, -1, True) + \
                   count_tiles(column_no, 1, False) + count_tiles(column_no, -1, False)
+
+        if points == 0:
+            points += 1
 
         return points
 
@@ -61,16 +66,16 @@ class Wall:
         self.wall[line_no][column_no] = "Tile"
         return self.counting_points(line_no, column_no)
 
-    def any_hor_is_full(self):
+    def any_row_is_full(self):
         return any([all(("Tile" == self.wall[i][j]) for j in range(5)) for i in range(1, 6)])
 
-    def hor_is_full(self):
+    def row_is_full(self):
         return [all(("Tile" == self.wall[i][j]) for j in range(5)) for i in range(1, 6)].count(True) * 2
 
-    def vert_is_full(self):
+    def column_is_full(self):
         return [all(("Tile" == self.wall[j][i]) for j in range(1, 6)) for i in range(5)].count(True) * 7
 
-    def all_same_color(self):
+    def color_is_full(self):
         ordered_tile_types = [
             TileType.BLUE,
             TileType.YELLOW,
@@ -83,12 +88,9 @@ class Wall:
 
     def score_wall(self):
         points = 0
-        points += self.hor_is_full()
-        print(self.hor_is_full())
-        points += self.vert_is_full()
-        print(self.vert_is_full())
-        points += self.all_same_color()
-        print(self.all_same_color())
+        points += self.row_is_full()
+        points += self.column_is_full()
+        points += self.color_is_full()
         return points
 
 
@@ -157,7 +159,8 @@ class Floor:
         return len(self.floor)
 
     def accept_tile(self, tile):
-        self.floor.append(tile)
+        if len(self.floor) < 7:
+            self.floor.append(tile)
 
     def score(self):
         score = 0
@@ -285,15 +288,15 @@ class Game:
                 winner_full_hor_score = 0
                 for p in self.players:
                     print(f"{p.player.name}: {p.player.score}\n"
-                          f"And has {int(p.player.board.wall.hor_is_full() / 2)} full horizontal lines")
+                          f"And has {int(p.player.board.wall.row_is_full() / 2)} full horizontal lines")
                     if winner_score < p.player.score:
                         winner = p.player.name
                         winner_score = p.player.score
-                        winner_full_hor_score = p.player.board.wall.hor_is_full()
+                        winner_full_hor_score = p.player.board.wall.row_is_full()
                     elif winner_score == p.player.score:
-                        if winner_full_hor_score < p.player.board.wall.hor_is_full():
+                        if winner_full_hor_score < p.player.board.wall.row_is_full():
                             winner = p.player.name
-                        elif winner_full_hor_score == p.player.board.wall.hor_is_full():
+                        elif winner_full_hor_score == p.player.board.wall.row_is_full():
                             winner += " & " + p.player.name
 
                 self.logger.info(f'End of the game. The winner is: {winner}')
@@ -379,7 +382,7 @@ class Game:
         return all([f.is_empty() for f in self.factories]) and self.center.is_empty()
 
     def is_end_of_game(self, rounds):
-        any_full_wall_line = any([p.player.board.wall.any_hor_is_full() for p in self.players])
+        any_full_wall_line = any([p.player.board.wall.any_row_is_full() for p in self.players])
         if any_full_wall_line is True:
             print("Full wall line")
         return (self.bag.is_empty() and self.lid.is_empty()) or any_full_wall_line or rounds > 50
