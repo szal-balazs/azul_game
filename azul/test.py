@@ -98,6 +98,11 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(some_in_line.is_full(), False)
         self.assertEqual(full_line.is_full(), True)
 
+    def test_lines_is_unfinished(self):
+        self.assertEqual(empty_line.is_unfinished(), False)
+        self.assertEqual(some_in_line.is_unfinished(), True)
+        self.assertEqual(full_line.is_unfinished(), False)
+
     def test_lines_type(self):
         self.assertEqual(empty_line.tile_type, None)
         self.assertEqual(some_in_line.tile_type, game.TileType.BLUE)

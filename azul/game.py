@@ -140,6 +140,9 @@ class Line(collections.deque):
     def is_full(self):
         return len(self) == self.maxlen
 
+    def is_unfinished(self):
+        return 0 < len(self) < self.maxlen
+
     def can_accept(self, tile_type):
         a = not self.is_full()
         b = self.tile_type is None or self.tile_type is tile_type
